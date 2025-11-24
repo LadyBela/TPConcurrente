@@ -16,7 +16,7 @@ public class Parque {
         this.autitosChocadores = new AutitosChocadores();
         this.molinetes = new Molinetes(cantMolinetes);
         this.realidadVirtual = new RealidadVirtual(10, 20, 10);
-        this.carreraGomones = new CarreraGomones(15, 30, 10, 8);
+        //this.carreraGomones = new CarreraGomones(15, 30, 10, 8);
         this.areaPremios = new AreaPremios();
         this.comedor = new Comedor();
         this.teatro = new Teatro();

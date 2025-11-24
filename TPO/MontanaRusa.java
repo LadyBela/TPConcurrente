@@ -12,6 +12,7 @@ public class MontanaRusa {
     private Semaphore espacioEspera;
     private CyclicBarrier barrera;
     private Semaphore semEsperando = new Semaphore(1); // Semaforo para la variable esperando
+    private Semaphore semSalida = new Semaphore(5);
     private int esperando = 0;
 
     public MontanaRusa() {
@@ -33,6 +34,7 @@ public class MontanaRusa {
         } else {
             // Entra en la fila de espera y ahora debe esperar a que sean 5 para arrancar
             semEsperando.acquire();
+            semSalida.acquire();
             esperando++;
             System.out.println("Persona " + p.getNombre() + " esta esperando en la Montaña Rusa (" + esperando + "/5)");
 
@@ -62,6 +64,7 @@ public class MontanaRusa {
         entregarFichas(p);
         // Sueltan el lugar en la fila de espera
         espacioEspera.release();
+        semSalida.release();
     }
 
 }

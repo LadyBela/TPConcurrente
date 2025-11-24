@@ -2,6 +2,7 @@ package TPO;
 
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Semaphore;
 
 public class AutitosChocadores {
 
@@ -9,6 +10,7 @@ public class AutitosChocadores {
     private int personasPorAuto = 2;
     private int capacidadTotal = cantidadAutos * personasPorAuto;
     private CyclicBarrier barrera;
+    private Semaphore semSalida = new Semaphore(capacidadTotal);
     private int fichas = 5;
 
     public AutitosChocadores() {
@@ -21,11 +23,18 @@ public class AutitosChocadores {
 
     public boolean intentarSubir(Persona p) throws InterruptedException {
         boolean subio = false;
-        //No hay fila de espera, se suben directamente cuando hay lugar
-        System.out.println("Visitante " + p.getNombre() + " esperando Autitos Chocadores");
+        // No hay fila de espera, se suben directamente cuando hay lugar
+        System.out.println("Persona " + p.getNombre() + " esperando Autitos Chocadores");
         try {
-            subio = true;
-            barrera.await();
+            if (!semSalida.tryAcquire()) {
+                System.out.println("Persona " + p.getNombre() +
+                        " no pudo subir a los Autitos Chocadores porque no hay lugar disponible y se va a ir");
+                subio = false;
+            } else {
+                subio = true;
+                System.out.println("Persona " + p.getNombre() + " se subió a los Autitos Chocadores");
+                barrera.await();
+            }
         } catch (BrokenBarrierException e) {
             e.printStackTrace();
         }
@@ -37,6 +46,7 @@ public class AutitosChocadores {
         System.out.println("Se terminaron los Autitos Chocadores para la persona " + p.getNombre()
                 + " y se entregaran (+" + fichas + " fichas)");
         entregarFichas(p);
+        semSalida.release();
     }
 
 }
