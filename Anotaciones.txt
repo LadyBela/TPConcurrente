@@ -2,6 +2,10 @@ BlockingQueue:
 BlockingQueue se utiliza comúnmente en Patrones productor-consumidor y otros escenarios multiproceso.
 - Podría utilizarlo como las colas de "Espera" para las atracciones. 
 Ponerles un límite de personas y si el límite está lleno que vayan a otra atracción.
+    Usado en:
+    En RV porque usa cantidades de manoplas, bases y visores.
+
+
 
 
 
@@ -14,3 +18,6 @@ datos entre un productor y un consumidor.
 
 
 CyclicBarrier:
+    Usado en:
+    En montaña rusa
+    En autitos chocadores

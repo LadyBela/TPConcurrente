@@ -5,13 +5,13 @@ public class Parque {
     public MontanaRusa montanaRusa;
     public AutitosChocadores autitosChocadores;
     public Molinetes molinetes;
-    public RealidadVirtual realidadVirtual = new RealidadVirtual();
+    public RealidadVirtual realidadVirtual;
     public CarreraGomones carreraGomones = new CarreraGomones();
     public AreaPremios areaPremios;
     public Comedor comedor;
     public Teatro teatro;
 
-    public Parque(int cantMolinetes){
+    public Parque(int cantMolinetes) {
         this.montanaRusa = new MontanaRusa();
         this.autitosChocadores = new AutitosChocadores();
         this.molinetes = new Molinetes(cantMolinetes);
@@ -21,7 +21,6 @@ public class Parque {
         this.comedor = new Comedor();
         this.teatro = new Teatro();
     }
-
 
     public MontanaRusa getMontanaRusa() {
         return montanaRusa;
