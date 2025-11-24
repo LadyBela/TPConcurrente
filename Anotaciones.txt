@@ -1,0 +1,16 @@
+BlockingQueue:
+BlockingQueue se utiliza comúnmente en Patrones productor-consumidor y otros escenarios multiproceso.
+- Podría utilizarlo como las colas de "Espera" para las atracciones. 
+Ponerles un límite de personas y si el límite está lleno que vayan a otra atracción.
+
+
+
+Exchanger:
+sincroniza dos hilos permitiéndoles intercambiar objetos de forma segura. 
+Funciona como un punto de sincronización: un hilo espera a que el otro llame al método exchange() para que ambos 
+puedan intercambiar los objetos que tienen y continuar su ejecución. Es útil en escenarios como el intercambio de 
+datos entre un productor y un consumidor. 
+ The thread exchanges the objects they are holding and signals the exchange, and now they can return.
+
+
+CyclicBarrier:
