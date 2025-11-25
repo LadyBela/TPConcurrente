@@ -1,8 +1,5 @@
 package TPO;
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 public class Reloj extends Thread {
     private static int hora = 12;
     private static int minutos = 0;
@@ -28,18 +25,4 @@ public class Reloj extends Thread {
             Thread.currentThread().interrupt();
         }
     }
-
-    // Obtiene la hora actual en formato HH:MM
-
-    public String getHoraActual() {
-        String hora = "";
-        try {
-            hora = String.format("%02d:%02d", hora, minutos);
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return hora;
-    }
-
 }
