@@ -7,6 +7,7 @@ public class Persona extends Thread {
     private int nombre;
     private Monedero monedero;
     private Parque parque;
+    private int mesaAsignada = -1;
 
     public Persona(int n, Parque p) {
         this.nombre = n;
@@ -16,6 +17,14 @@ public class Persona extends Thread {
 
     public int getNombre() {
         return this.nombre;
+    }
+
+    public void asignarMesa(int mesa) {
+        this.mesaAsignada = mesa;
+    }
+
+    public int getMesaAsignada() {
+        return this.mesaAsignada;
     }
 
     public void agregarFichas(String tipo, int cantFichas) {
@@ -45,7 +54,7 @@ public class Persona extends Thread {
                 boolean subio = false;
                 for (int i = 0; i < actividades; i++) {
                     // int actividad = rand.nextInt(6);
-                    int actividad = 2; // pongo para ir probando de a 1 actividad fija
+                    int actividad = 5; // pongo para ir probando de a 1 actividad fija
                     switch (actividad) {
                         case 0:
                             subio = parque.getMontanaRusa().intentarSubir(this);
@@ -72,10 +81,16 @@ public class Persona extends Thread {
                             // parque.areaPremios.canjearFichas(this);
                             break;
                         case 5:
+                            parque.getComedor().sentarseEnMesa(this);
+                            if (mesaAsignada != -1) {
+                                parque.getComedor().pedirComida(this);
+                                Thread.sleep(3000); 
+                                parque.getComedor().irseDeMesa(this);
+                            }
                             // parque.comedor.intentarComer(this);
                             break;
                     }
-                    
+
                 }
                 Thread.sleep(5000);
             }

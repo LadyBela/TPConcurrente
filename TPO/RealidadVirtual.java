@@ -81,7 +81,6 @@ public class RealidadVirtual {
             entregarEquipo.await();
             if (personasEsperando != 0) {
                 // Intentara preparar el equipo
-                if (!visores.isEmpty() && manoplas.size() >= 2 && !bases.isEmpty()) {
                     String visor = visores.take();
                     String manopla1 = manoplas.take();
                     String manopla2 = manoplas.take();
@@ -93,9 +92,6 @@ public class RealidadVirtual {
                     this.equipoListo.put("base", base);
                     System.out.println(" Encargado entregó  equipo de Realidad Virtual "+equipoListo);
                     personasEsperando--;
-                } else {
-                    System.out.println(" No hay suficiente equipo de Realidad Virtual para entregar ");
-                }
 
             }
             esperarEquipo.signal();
