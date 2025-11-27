@@ -10,7 +10,6 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Comedor {
     private int cantidadMesas = 5;
     private int capacidadPorMesa = 4;
-    // private CountDownLatch mesa = new CountDownLatch(capacidadPorMesa);
     private HashMap listaMesas = new HashMap(cantidadMesas);
     private HashMap listaPedidos = new HashMap(cantidadMesas);
     private HashMap comidaLista = new HashMap(cantidadMesas);
@@ -30,11 +29,12 @@ public class Comedor {
     }
 
     public void sentarseEnMesa(Persona p) {
+        // Si no hay mesa disponible, se va
         for (int i = 0; i < cantidadMesas; i++) {
             CountDownLatch mesa = (CountDownLatch) listaMesas.get("mesa" + i);
 
             if (mesa.getCount() > 0) {
-                // Si la mesa tiene lugar intentará sentarse, sino intentará pasar al siguiente
+                // Si la mesa tiene lugar intentará sentarse, sino intentará pasar a la siguiente
                 try {
                     mesa.countDown();
                     p.asignarMesa(i);
@@ -48,11 +48,9 @@ public class Comedor {
     }
 
     public void pedirComida(Persona p) {
-        // Lógica para pedir comida en el comedor
         int numMesa = p.getMesaAsignada();
         CountDownLatch pedidoMesa = (CountDownLatch) listaPedidos.get("pedido" + numMesa);
 
-        // Va a hacer su pedido
         try {
             System.out.println(" Persona " + p.getNombre() + " está pidiendo comida en la mesa " + numMesa);
             pedidoMesa.countDown();
@@ -88,13 +86,9 @@ public class Comedor {
 
             lock.lock();
             try {
-                // Reiniciar mesa
+                //Reinicio las mesas, pedidos y la comida
                 listaMesas.put("mesa" + mesa, new CountDownLatch(capacidadPorMesa));
-
-                // Reiniciar pedidos (para el próximo grupo)
                 listaPedidos.put("pedido" + mesa, new CountDownLatch(capacidadPorMesa));
-
-                // Reiniciar estado de comida
                 comidaLista.put("comida" + mesa, false);
 
                 System.out.println(" La mesa " + mesa + " se acaba de vaciar.");
@@ -121,12 +115,11 @@ public class Comedor {
                     comidaLista.put("comida" + i, true);
                     pedidoMesa = new CountDownLatch(capacidadPorMesa);
                     listaPedidos.put("pedido" + i, pedidoMesa);
-                    esperarComida.signalAll(); // avisar a los comensales
+                    esperarComida.signalAll(); 
                 }
             }
 
         } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } finally {
             lock.unlock();

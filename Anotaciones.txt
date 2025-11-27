@@ -21,3 +21,7 @@ CyclicBarrier:
     Usado en:
     En montaña rusa
     En autitos chocadores
+
+
+CountDownLatch
+    Usado en Comedor

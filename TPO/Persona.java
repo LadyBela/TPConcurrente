@@ -44,7 +44,6 @@ public class Persona extends Thread {
             while (true) {
                 // Ingresar por molinete
 
-                // Realizar actividades aleatorias
                 Random rand = new Random();
                 /*
                  * Random rand = new Random();
@@ -71,8 +70,10 @@ public class Persona extends Thread {
                         case 2:
                             HashMap<String, String> equipo = parque.getRealidadVirtual().intentarParticipar(this);
                             Thread.sleep(2000);
-                            if (equipo != null)
+                            if (equipo != null){
                                 parque.getRealidadVirtual().dejarDeParticipar(this, equipo);
+                                equipo = null;
+                            }
                             break;
                         case 3:
                             // parque.getCarreraGomones().participar(this);
