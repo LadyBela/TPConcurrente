@@ -1,6 +1,7 @@
 package TPO;
 
 public class Monedero {
+    //puedo usar atomicinteger aca
     private int fichaMR; // Ficha de montaña rusa
     private int fichaAC; // Ficha de autitos chocadores
     private int fichaRV; // Ficha de realidad virtual

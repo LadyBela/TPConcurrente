@@ -8,13 +8,15 @@ public class Main {
 
     public static void main(String[] args) {
         Parque parque = new Parque(5);
+        encargado = new Empleado(parque, "Encargado");
+        cocinero = new Empleado(parque, "Cocinero");
+        encargado.start();
+        cocinero.start();
 
         reloj = new Reloj();
         reloj.start();
-        encargado = new Empleado(parque, "Encargado");
-        encargado.start();
-        cocinero = new Empleado(parque, "Cocinero");
-        cocinero.start();
+
+        // System.out.println("despues de iniciar encargado");
 
         for (int p = 0; p < personas.length; p++) {
             personas[p] = new Persona(p + 1, parque);

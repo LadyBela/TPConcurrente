@@ -8,6 +8,7 @@ public class Persona extends Thread {
     private Monedero monedero;
     private Parque parque;
     private int mesaAsignada = -1;
+    private HashMap<String, String> equipo;
 
     public Persona(int n, Parque p) {
         this.nombre = n;
@@ -35,6 +36,18 @@ public class Persona extends Thread {
         this.monedero.quitarFichas(tipo, cantFichas);
     }
 
+    public void agregarEquipo(HashMap<String, String> equipoObtenido) {
+        this.equipo = equipoObtenido;
+    }
+
+    public HashMap<String, String> devolverEquipo() {
+        return this.equipo;
+    }
+
+
+
+
+
     // En el run va a tener un "subir a juego" y si retorna true, va a esperar un
     // tiempo y luego va a "bajar del juego"
 
@@ -53,7 +66,7 @@ public class Persona extends Thread {
                 boolean subio = false;
                 for (int i = 0; i < actividades; i++) {
                     // int actividad = rand.nextInt(6);
-                    int actividad = 5; // pongo para ir probando de a 1 actividad fija
+                    int actividad = 2; // pongo para ir probando de a 1 actividad fija
                     switch (actividad) {
                         case 0:
                             subio = parque.getMontanaRusa().intentarSubir(this);
@@ -68,11 +81,10 @@ public class Persona extends Thread {
                                 parque.getAutitosChocadores().intentarBajar(this);
                             break;
                         case 2:
-                            HashMap<String, String> equipo = parque.getRealidadVirtual().intentarParticipar(this);
+                            parque.getRealidadVirtual().intentarParticipar(this);
                             Thread.sleep(2000);
                             if (equipo != null){
-                                parque.getRealidadVirtual().dejarDeParticipar(this, equipo);
-                                equipo = null;
+                                parque.getRealidadVirtual().dejarDeParticipar(this);
                             }
                             break;
                         case 3:
