@@ -3,6 +3,7 @@ package TPO;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MontanaRusa {
 
@@ -10,14 +11,18 @@ public class MontanaRusa {
     private int capacidadEspera = 20;
     private int fichas = 10;
     private Semaphore espacioEspera;
-    private CyclicBarrier barrera;
-    private Semaphore semEsperando = new Semaphore(1); // Semaforo para la variable esperando
-    private Semaphore semSalida = new Semaphore(5);
-    private int esperando = 0;
+    private CyclicBarrier barreraInicio;
+    private CyclicBarrier barreraSalida;
+    // private Semaphore semEsperandoSubir = new Semaphore(1); // Semaforo para la
+    // variable esperando
+    private Semaphore semInicio = new Semaphore(5);
+
+    private AtomicInteger esperando = new AtomicInteger(0);
 
     public MontanaRusa() {
         this.espacioEspera = new Semaphore(capacidadEspera);
-        this.barrera = new CyclicBarrier(capacidad);
+        this.barreraInicio = new CyclicBarrier(capacidad);
+        this.barreraSalida = new CyclicBarrier(capacidad);
     }
 
     public void entregarFichas(Persona p) {
@@ -32,24 +37,19 @@ public class MontanaRusa {
                     "Persona " + p.getNombre() +
                             " no pudo entrar a la fila de espera de la Montaña Rusa y se va a ir");
         } else {
-            // Entra en la fila de espera y ahora debe esperar a que sean 5 para arrancar
-            semEsperando.acquire();
-            semSalida.acquire();
-            esperando++;
-            System.out.println("Persona " + p.getNombre() + " esta esperando en la Montaña Rusa (" + esperando + "/5)");
-
-            if (esperando == capacidad) {
-                // Si ya son 5, arranca el viaje
-                esperando = 0;
-                semEsperando.release();
-            } else {
-                // Si no son 5, espera a que termine el viaje
-                semEsperando.release();
-            }
-            subio = true;
             try {
+                // Entra en la fila de espera y ahora debe esperar a que sean 5 para arrancar
+                System.out.println(" Persona " + p.getNombre() + " entró en la fila de espera de la Montaña Rusa");
+                semInicio.acquire();
+                barreraInicio.await();
+                // esperando++;
+                esperando.getAndIncrement();
+                System.out.println(
+                        "Persona " + p.getNombre() + " esta esperando a subir (" + esperando.get() + "/5)");
+                subio = true;
+
                 // Van a esperar a que todos se suban
-                barrera.await();
+
             } catch (BrokenBarrierException e) {
                 e.printStackTrace();
             }
@@ -62,9 +62,16 @@ public class MontanaRusa {
         System.out.println("Se terminó el viaje de la Montaña Rusa para la persona " + p.getNombre()
                 + " y se entregaran (+" + fichas + " fichas)");
         entregarFichas(p);
-        // Sueltan el lugar en la fila de espera
-        espacioEspera.release();
-        semSalida.release();
+        try {
+            // Hasta que no esten todos listos, no pueden bajar
+            barreraSalida.await();
+            esperando.getAndDecrement();
+            semInicio.release();
+            espacioEspera.release();
+        } catch (BrokenBarrierException e) {
+            e.printStackTrace();
+        }
+
     }
 
 }

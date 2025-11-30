@@ -15,7 +15,8 @@ Funciona como un punto de sincronización: un hilo espera a que el otro llame al
 puedan intercambiar los objetos que tienen y continuar su ejecución. Es útil en escenarios como el intercambio de 
 datos entre un productor y un consumidor. 
  The thread exchanges the objects they are holding and signals the exchange, and now they can return.
-
+    Usado en:
+    En realidad virtual
 
 CyclicBarrier:
     Usado en:

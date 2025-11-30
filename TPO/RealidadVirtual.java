@@ -42,18 +42,11 @@ public class RealidadVirtual {
 
     public void dejarDeParticipar(Persona p) throws InterruptedException {
         System.out.println("  " + p.getNombre() + " va a devolver equipo de Realidad Virtual ");
-
         Exchanger<HashMap> equipo = new Exchanger<>();
-
-        // Se encola para devolver
         colaDevoluciones.put(equipo);
-
-        // Le pasa su equipo al encargado
-        HashMap devuelto = equipo.exchange(p.devolverEquipo());
-
+        p.agregarEquipo(equipo.exchange(p.devolverEquipo()));
         System.out.println("Se terminó la Realidad Virtual para la persona " + p.getNombre()
                 + " y se entregaran (+" + fichas + " fichas)");
-
         entregarFichas(p);
     }
 

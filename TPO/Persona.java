@@ -32,6 +32,10 @@ public class Persona extends Thread {
         this.monedero.agregarFichas(tipo, cantFichas);
     }
 
+    public int cantidadFichas(String tipo) {
+        return this.monedero.getFichasActuales(tipo);
+    }
+
     public void quitarFichas(String tipo, int cantFichas) {
         this.monedero.quitarFichas(tipo, cantFichas);
     }
@@ -43,10 +47,6 @@ public class Persona extends Thread {
     public HashMap<String, String> devolverEquipo() {
         return this.equipo;
     }
-
-
-
-
 
     // En el run va a tener un "subir a juego" y si retorna true, va a esperar un
     // tiempo y luego va a "bajar del juego"
@@ -60,30 +60,30 @@ public class Persona extends Thread {
                 Random rand = new Random();
                 /*
                  * Random rand = new Random();
-                 * int actividades = rand.nextInt(3) + 2;
+                 * int actividades = rand.nextInt(3) + 1;
                  */
                 int actividades = 1;
                 boolean subio = false;
                 for (int i = 0; i < actividades; i++) {
-                    // int actividad = rand.nextInt(6);
-                    int actividad = 2; // pongo para ir probando de a 1 actividad fija
+                    int actividad = rand.nextInt(5);
+                    // int actividad = 0; // pongo para ir probando de a 1 actividad fija
                     switch (actividad) {
                         case 0:
                             subio = parque.getMontanaRusa().intentarSubir(this);
-                            Thread.sleep(5000);
+                            Thread.sleep(7000);
                             if (subio)
                                 parque.getMontanaRusa().intentarBajar(this);
                             break;
                         case 1:
                             subio = parque.getAutitosChocadores().intentarSubir(this);
-                            Thread.sleep(2000);
+                            Thread.sleep(3000);
                             if (subio)
                                 parque.getAutitosChocadores().intentarBajar(this);
                             break;
                         case 2:
                             parque.getRealidadVirtual().intentarParticipar(this);
-                            Thread.sleep(2000);
-                            if (equipo != null){
+                            Thread.sleep(3000);
+                            if (equipo != null) {
                                 parque.getRealidadVirtual().dejarDeParticipar(this);
                             }
                             break;
@@ -91,20 +91,17 @@ public class Persona extends Thread {
                             // parque.getCarreraGomones().participar(this);
                             break;
                         case 4:
-                            // parque.areaPremios.canjearFichas(this);
-                            break;
-                        case 5:
                             parque.getComedor().sentarseEnMesa(this);
                             if (mesaAsignada != -1) {
                                 parque.getComedor().pedirComida(this);
-                                Thread.sleep(3000); 
+                                Thread.sleep(4000);
                                 parque.getComedor().irseDeMesa(this);
                             }
-                            // parque.comedor.intentarComer(this);
                             break;
-                    }
 
+                    }
                 }
+                parque.areaPremios.canjearFichas(this);
                 Thread.sleep(5000);
             }
         } catch (InterruptedException e) {
