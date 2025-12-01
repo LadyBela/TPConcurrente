@@ -24,15 +24,15 @@ public class AutitosChocadores {
     public boolean intentarSubir(Persona p) throws InterruptedException {
         boolean subio = false;
         // No hay fila de espera, se suben directamente cuando hay lugar
-        System.out.println("Persona " + p.getNombre() + " esperando Autitos Chocadores");
+        System.out.println("AC | Persona " + p.getNombre() + " esperando Autitos Chocadores");
         try {
             if (!semSalida.tryAcquire()) {
-                System.out.println("Persona " + p.getNombre() +
+                System.out.println("AC | Persona " + p.getNombre() +
                         " no pudo subir a los Autitos Chocadores porque no hay lugar disponible y se va a ir");
                 subio = false;
             } else {
                 subio = true;
-                System.out.println("Persona " + p.getNombre() + " se subió a los Autitos Chocadores");
+                System.out.println("AC | Persona " + p.getNombre() + " se subió a los Autitos Chocadores");
                 barrera.await();
             }
         } catch (BrokenBarrierException e) {
@@ -43,7 +43,7 @@ public class AutitosChocadores {
 
     public void intentarBajar(Persona p) {
         // Cuando termina el juego, se les entrega las fichas a cada persona
-        System.out.println("Se terminaron los Autitos Chocadores para la persona " + p.getNombre()
+        System.out.println("AC | Se terminaron los Autitos Chocadores para la persona " + p.getNombre()
                 + " y se entregaran (+" + fichas + " fichas)");
         entregarFichas(p);
         semSalida.release();

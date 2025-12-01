@@ -85,6 +85,10 @@ public class Persona extends Thread {
         try {
             while (true) {
                 // Ingresar por molinete
+                parque.esperarMolinete();
+                System.out.println("P | Persona " + this.getNombre() + " esta pasando por molinete");
+                Thread.sleep(1000);
+                parque.dejarMolinete();
 
                 Random rand = new Random();
                 /*

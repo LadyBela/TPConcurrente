@@ -86,7 +86,7 @@ public class CarreraGomones {
             // 0 es bicis , 1 es tren
             case 0:
                 try {
-                    System.out.println("Persona " + p.getNombre() + " va a ir al río en bicicleta");
+                    System.out.println("CG | Persona " + p.getNombre() + " va a ir al río en bicicleta");
                     bicicleta.acquire();
                 } catch (InterruptedException ex) {
                     System.out.println(ex);
@@ -95,7 +95,7 @@ public class CarreraGomones {
 
             case 1:
                 try {
-                    System.out.println("Persona " + p.getNombre() + " va a ir al río en tren");
+                    System.out.println("CG | Persona " + p.getNombre() + " va a ir al río en tren");
                     tren.await(8, TimeUnit.SECONDS);
                 } catch (TimeoutException ex) {
                     tren.reset();
@@ -113,11 +113,11 @@ public class CarreraGomones {
         switch (eleccion) {
             // 0 es bicis , 1 es tren
             case 0:
-                System.out.println("Persona " + p.getNombre() + " llego al río y va a dejar la bicicleta");
+                System.out.println("CG | Persona " + p.getNombre() + " llego al río y va a dejar la bicicleta");
                 bicicleta.release();
                 break;
             case 1:
-                System.out.println("Persona " + p.getNombre() + " llego al río luego de ir en tren");
+                System.out.println("CG | Persona " + p.getNombre() + " llego al río luego de ir en tren");
                 break;
             default:
                 break;
@@ -167,7 +167,8 @@ public class CarreraGomones {
     public void guardarBolsa(Persona p) {
         casillero.lock();
         int casilleroPersona = casilleroVacio;
-        System.out.println("Persona " + p.getNombre() + " va a guardar sus cosas en el casillero " + casilleroPersona);
+        System.out.println(
+                "CG | Persona " + p.getNombre() + " va a guardar sus cosas en el casillero " + casilleroPersona);
         casilleros[casilleroVacio] = p.getNombre();
         p.asignarCasillero(casilleroPersona);
         casilleroVacio++;
@@ -243,14 +244,14 @@ public class CarreraGomones {
             p.asignarParejaGomon(0);
 
         }
-        System.out.println("Persona " + p.getNombre() + " Ha terminado la carrera y se va a ir");
+        System.out.println("CG | Persona " + p.getNombre() + " Ha terminado la carrera y se va a ir");
 
     }
 
     public void retirarBolsa(Persona p) {
         casillero.lock();
 
-        System.out.println("La persona retirara su bolsa del casillero " + p.getCasilleroAsignado());
+        System.out.println("CG | La persona retirara su bolsa del casillero " + p.getCasilleroAsignado());
 
         casilleros[p.getCasilleroAsignado()] = -1;
 
@@ -265,15 +266,13 @@ public class CarreraGomones {
 
         int tienepareja = ((int) p.getGomonASignado().get("pareja"));
         if (tienepareja == 0) {
-            System.out.println("Persona " + p.getNombre() + " esta esperando a que arranque la carrera.");
+            System.out.println("CG | Persona " + p.getNombre() + " esta esperando a que arranque la carrera.");
         } else {
             System.out.println(
-                    "Persona " + p.getNombre() + " y " + tienepareja + " esta esperando a que arranque la carrera.");
+                    "CG | Persona " + p.getNombre() + " y " + tienepareja
+                            + " esta esperando a que arranque la carrera.");
             enCarrera.getAndIncrement();
         }
-
-        System.out.println(" enCarrera.get() " + enCarrera.get() + " maximoCarrera.get() " + maximoCarrera.get());
-
         if (enCarrera.get() == maximoCarrera.get()) {
             puedenComenzar = true;
             empiezaCarrera.signalAll();
@@ -304,14 +303,13 @@ public class CarreraGomones {
         carrera.lock();
 
         try {
-            System.out.println("Persona " + p.getNombre() + "terminó la carrera.");
-            System.out.println(" terminaron.get() " + terminaron.get());
+            System.out.println("CG | Persona " + p.getNombre() + "terminó la carrera.");
             if (terminaron.get() == 0) {
                 terminaron.getAndIncrement();
-                System.out.println("Persona " + p.getNombre() + " ganó la carrera.");
+                System.out.println("CG | Persona " + p.getNombre() + " ganó la carrera.");
                 ganadores.add(p.getNombre());
                 if (tienepareja != 0) {
-                    System.out.println("Con su pareja " + tienepareja);
+                    System.out.println("CG | Con su pareja " + tienepareja);
                     ganadores.add(tienepareja);
                 }
             } else {
@@ -337,7 +335,7 @@ public class CarreraGomones {
     }
 
     private void entregarPremios(Persona p, int posicion) {
-        System.out.println(" Se van a entregar fichas a ganador carrera gomones: " + p.getNombre());
+        System.out.println("CG | Se van a entregar fichas a ganador carrera gomones: " + p.getNombre());
         p.agregarFichas("CG", fichas);
         ganadores.remove(posicion);
     }

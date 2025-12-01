@@ -1,10 +1,15 @@
 package TPO;
 
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class Parque {
 
+    private AtomicInteger molinetes;
+    
     public MontanaRusa montanaRusa;
     public AutitosChocadores autitosChocadores;
-    public Molinetes molinetes;
+    // public Molinetes molinetes;
     public RealidadVirtual realidadVirtual;
     public CarreraGomones carreraGomones;
     public AreaPremios areaPremios;
@@ -14,12 +19,13 @@ public class Parque {
     public Parque(int cantMolinetes) {
         this.montanaRusa = new MontanaRusa();
         this.autitosChocadores = new AutitosChocadores();
-        this.molinetes = new Molinetes(cantMolinetes);
         this.realidadVirtual = new RealidadVirtual(10, 20, 10);
         this.carreraGomones = new CarreraGomones(15, 10, 8, 8, 12);
         this.areaPremios = new AreaPremios();
         this.comedor = new Comedor();
         this.teatro = new Teatro();
+
+        this.molinetes = new AtomicInteger(cantMolinetes);
     }
 
     public MontanaRusa getMontanaRusa() {
@@ -30,8 +36,16 @@ public class Parque {
         return autitosChocadores;
     }
 
-    public Molinetes getMolinetes() {
-        return molinetes;
+    public void esperarMolinete() {
+        molinetes.getAndDecrement();
+    }
+
+    public void dejarMolinete() {
+        molinetes.getAndIncrement();
+    }
+
+    public int getMolinetesDisponibles() {
+        return molinetes.get();
     }
 
     public RealidadVirtual getRealidadVirtual() {

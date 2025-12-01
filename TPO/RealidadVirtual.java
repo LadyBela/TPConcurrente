@@ -32,20 +32,20 @@ public class RealidadVirtual {
     }
 
     public void intentarParticipar(Persona p) throws InterruptedException {
-        System.out.println("La persona " + p.getNombre() + " va a participar de la Realidad Virtual.");
+        System.out.println("RV | La persona " + p.getNombre() + " va a participar de la Realidad Virtual.");
         Exchanger<HashMap> equipo = new Exchanger<>();
         colaPedidos.put(equipo);
         p.agregarEquipo(equipo.exchange(new HashMap<>()));
-        System.out.println("La persona " + p.getNombre() + " ya tiene su equipo. " + p.devolverEquipo());
+        System.out.println("RV | La persona " + p.getNombre() + " ya tiene su equipo. " + p.devolverEquipo());
 
     }
 
     public void dejarDeParticipar(Persona p) throws InterruptedException {
-        System.out.println("  " + p.getNombre() + " va a devolver equipo de Realidad Virtual ");
+        System.out.println("RV |  Persona  " + p.getNombre() + " va a devolver equipo de Realidad Virtual ");
         Exchanger<HashMap> equipo = new Exchanger<>();
         colaDevoluciones.put(equipo);
         p.agregarEquipo(equipo.exchange(p.devolverEquipo()));
-        System.out.println("Se terminó la Realidad Virtual para la persona " + p.getNombre()
+        System.out.println("RV | Se terminó la Realidad Virtual para la persona " + p.getNombre()
                 + " y se entregaran (+" + fichas + " fichas)");
         entregarFichas(p);
     }
@@ -62,7 +62,7 @@ public class RealidadVirtual {
             equipo.put("manopla2", manoplas.take());
             equipo.put("base", bases.take());
 
-            System.out.println("Encargado preparó el equipo: " + equipo);
+            System.out.println("RV | Encargado preparó el equipo: " + equipo);
 
             ex.exchange(equipo); // Lo pasa a una persona
         } catch (InterruptedException e) {
@@ -82,7 +82,7 @@ public class RealidadVirtual {
             manoplas.put(devuelto.get("manopla2"));
             bases.put(devuelto.get("base"));
 
-            System.out.println("Encargado guardó el equipo devuelto: " + devuelto);
+            System.out.println("RV | Encargado guardó el equipo devuelto: " + devuelto);
         } catch (InterruptedException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

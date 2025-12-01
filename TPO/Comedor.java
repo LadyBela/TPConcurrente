@@ -37,7 +37,7 @@ public class Comedor {
                 try {
                     mesa.countDown();
                     p.asignarMesa(i);
-                    System.out.println(" Persona " + p.getNombre() + " se sentó en la mesa " + i);
+                    System.out.println("Com | Persona " + p.getNombre() + " se sentó en la mesa " + i);
                     mesa.await();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -51,7 +51,7 @@ public class Comedor {
         CountDownLatch pedidoMesa = (CountDownLatch) listaPedidos.get("pedido" + numMesa);
 
         try {
-            System.out.println(" Persona " + p.getNombre() + " está pidiendo comida en la mesa " + numMesa);
+            System.out.println("Com | Persona " + p.getNombre() + " está pidiendo comida en la mesa " + numMesa);
             pedidoMesa.countDown();
             pedidoMesa.await();
         } catch (InterruptedException e) {
@@ -71,13 +71,13 @@ public class Comedor {
             lock.unlock();
         }
 
-        System.out.println(" Persona " + p.getNombre() + " recibió su comida.");
+        System.out.println("Com |  Persona " + p.getNombre() + " recibió su comida.");
 
     }
 
     public void irseDeMesa(Persona p) {
         int mesa = p.getMesaAsignada();
-        System.out.println("Persona " + p.getNombre() + " se retira de la mesa " + mesa);
+        System.out.println("Com | Persona " + p.getNombre() + " se retira de la mesa " + mesa);
 
         CountDownLatch pedidoMesa = (CountDownLatch) listaPedidos.get("pedido" + mesa);
         pedidoMesa.countDown();
@@ -90,7 +90,7 @@ public class Comedor {
                 listaPedidos.put("pedido" + mesa, new CountDownLatch(capacidadPorMesa));
                 comidaLista.put("comida" + mesa, false);
 
-                System.out.println(" La mesa " + mesa + " se acaba de vaciar.");
+                System.out.println("Com | La mesa " + mesa + " se acaba de vaciar.");
             } finally {
                 lock.unlock();
             }
@@ -105,12 +105,12 @@ public class Comedor {
 
             for (int i = 0; i < cantidadMesas; i++) {
                 CountDownLatch pedidoMesa = (CountDownLatch) listaPedidos.get("pedido" + i);
-                System.out.println("pedido mesa " + i + " count " + pedidoMesa.getCount());
+                System.out.println("Com | Pedido mesa " + i + " count " + pedidoMesa.getCount());
                 if (pedidoMesa.getCount() == 0) {
                     //pedidoMesa.getCount() es la cantidad restante de pedidos a hacer en esa mesa, tiene que ser 0
-                    System.out.println(" Hay pedido para la mesa " + i);
+                    System.out.println("Com | Hay pedido para la mesa " + i);
                     Thread.sleep(2000);
-                    System.out.println(" Comida lista para la mesa " + i);
+                    System.out.println("Com | Comida lista para la mesa " + i);
                     comidaLista.put("comida" + i, true);
                     pedidoMesa = new CountDownLatch(capacidadPorMesa);
                     listaPedidos.put("pedido" + i, pedidoMesa);
