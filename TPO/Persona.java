@@ -77,14 +77,11 @@ public class Persona extends Thread {
         return this.gomonAsignado;
     }
 
-    // En el run va a tener un "subir a juego" y si retorna true, va a esperar un
-    // tiempo y luego va a "bajar del juego"
-
     @Override
     public void run() {
         try {
             while (true) {
-                // Ingresar por molinete
+                parque.entrarParque();
                 parque.esperarMolinete();
                 System.out.println("P | Persona " + this.getNombre() + " esta pasando por molinete");
                 Thread.sleep(1000);
@@ -95,8 +92,12 @@ public class Persona extends Thread {
                  * Random rand = new Random();
                  * int actividades = rand.nextInt(3) + 1;
                  */
+                
                 int actividades = 1;
+                parque.hacerActividad(actividades,this);
+                /*
                 boolean subio = false;
+                
                 for (int i = 0; i < actividades; i++) {
                     int actividad = rand.nextInt(5);
                     // int actividad = 3; // pongo para ir probando de a 1 actividad fija
@@ -137,11 +138,11 @@ public class Persona extends Thread {
                                 parque.getComedor().irseDeMesa(this);
                             }
                             break;
-
                     }
                 }
                 parque.areaPremios.canjearFichas(this);
                 Thread.sleep(5000);
+                */
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
