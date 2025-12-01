@@ -1,5 +1,7 @@
 package TPO;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
@@ -14,16 +16,30 @@ import java.util.concurrent.locks.ReentrantLock;
 public class CarreraGomones {
 
     private boolean hayLugar;
-    private AtomicInteger gomonesSolos;
-    private AtomicInteger gomonesDuos;
+    private boolean esperanPareja;
+    private boolean carreraTerminada;
+    private boolean puedenEntrar;
+    private boolean puedenComenzar;
+
+    private AtomicInteger gomonesSolosLibres;
+    private AtomicInteger gomonesDuosLibres;
+    private AtomicInteger gomonesSolosOcupados;
+    private AtomicInteger gomonesDuosOcupados;
     private AtomicInteger participantes;
     private AtomicInteger maximoCarrera;
+    private AtomicInteger enCarrera;
+    private AtomicInteger terminaron;
+
+    private int[] casilleros;
+    private List ganadores;
+    private int casilleroVacio;
+    private int buscanPareja;
+    private int fichas = 20;
 
     private Lock carrera;
     private Lock entrada;
     private Lock casillero;
     private Lock condiciones;
-    private Lock horario;
     private Condition compañero;
     private Condition finCarrera;
     private Condition lugar;
@@ -33,10 +49,35 @@ public class CarreraGomones {
     private Random random;
 
     public CarreraGomones(int gomonSolo, int gomonDuo, int max, int bicis, int tren) {
-        this.gomonesSolos = new AtomicInteger(gomonSolo);
-        this.gomonesDuos = new AtomicInteger(gomonDuo);
+        this.gomonesSolosLibres = new AtomicInteger(gomonSolo);
+        this.gomonesDuosLibres = new AtomicInteger(gomonDuo);
+        this.gomonesSolosOcupados = new AtomicInteger(0);
+        this.gomonesDuosOcupados = new AtomicInteger(0);
         this.participantes = new AtomicInteger(0);
         this.maximoCarrera = new AtomicInteger(max);
+        this.enCarrera = new AtomicInteger(0);
+        this.terminaron = new AtomicInteger(0);
+        this.hayLugar = true;
+        this.buscanPareja = -1;
+        this.carreraTerminada = false;
+        this.puedenEntrar = true;
+        this.puedenComenzar = false;
+
+        this.carrera = new ReentrantLock();
+        this.entrada = new ReentrantLock(true);
+        this.casillero = new ReentrantLock();
+        this.condiciones = new ReentrantLock();
+        this.compañero = carrera.newCondition();
+        this.finCarrera = carrera.newCondition();
+        this.lugar = entrada.newCondition();
+        this.empiezaCarrera = condiciones.newCondition();
+
+        this.casilleroVacio = 0;
+        this.casilleros = new int[max * 2];
+        this.bicicleta = new Semaphore(bicis);
+        this.tren = new CyclicBarrier(tren);
+        this.random = new Random();
+        this.ganadores = new ArrayList();
     }
 
     public int irAlRio(Persona p) {
@@ -78,11 +119,11 @@ public class CarreraGomones {
             case 1:
                 System.out.println("Persona " + p.getNombre() + " llego al río luego de ir en tren");
                 break;
-
             default:
                 break;
         }
         anotarseEnCarrera(p);
+
     }
 
     public void anotarseEnCarrera(Persona p) {
@@ -92,8 +133,8 @@ public class CarreraGomones {
 
         // Si no hay lugar o si no quedan mas del gomon que se quiere, va a esperar
         while (!hayLugar
-                || (eleccion == 0 && gomonesSolos.get() == 0)
-                || (eleccion == 1 && gomonesDuos.get() == 0)) {
+                || (eleccion == 0 && gomonesSolosLibres.get() == 0)
+                || (eleccion == 1 && gomonesDuosLibres.get() == 0)) {
             if (!hayLugar) {
                 try {
                     lugar.await();
@@ -109,288 +150,195 @@ public class CarreraGomones {
             hayLugar = false;
         }
         if (eleccion == 0) {
-            gomonesSolos.getAndIncrement();
+            gomonesSolosLibres.getAndDecrement();
+            gomonesSolosOcupados.getAndIncrement();
         } else {
-            gomonesDuos.getAndIncrement();
+            gomonesDuosLibres.getAndDecrement();
+            gomonesDuosOcupados.getAndIncrement();
         }
 
         guardarBolsa(p);
 
-        try {
+        entrada.unlock();
 
+        subirseALosGomones(p, eleccion);
+    }
+
+    public void guardarBolsa(Persona p) {
+        casillero.lock();
+        int casilleroPersona = casilleroVacio;
+        System.out.println("Persona " + p.getNombre() + " va a guardar sus cosas en el casillero " + casilleroPersona);
+        casilleros[casilleroVacio] = p.getNombre();
+        p.asignarCasillero(casilleroPersona);
+        casilleroVacio++;
+        casillero.unlock();
+    }
+
+    public void subirseALosGomones(Persona p, int miEleccion) {
+        switch (miEleccion) {
+            // 0-> solo | 1 -> de a dos
+            case 0:
+                irCarrera(p);
+                break;
+            case 1:
+                carrera.lock();
+                if (!esperanPareja) {
+                    buscanPareja = p.getNombre();
+                    esperanPareja = true;
+                    entrada.lock();
+                    try {
+                        participantes.getAndDecrement();
+                        p.asignarGomon(miEleccion, gomonesDuosLibres.get(), 0);
+                        gomonesDuosLibres.getAndDecrement();
+                        if (participantes.get() < maximoCarrera.get()) {
+                            puedenEntrar = true;
+                        }
+                        lugar.signal();
+                    } finally {
+                        entrada.unlock();
+                    }
+                    try {
+                        while (esperanPareja) {
+                            compañero.await();
+                        }
+                        while (!carreraTerminada) {
+                            finCarrera.await();
+                        }
+                    } catch (InterruptedException ex) {
+                    } finally {
+                        carrera.unlock();
+                    }
+                } else {
+                    try {
+                        p.asignarParejaGomon(buscanPareja);
+                        esperanPareja = false;
+                        compañero.signalAll();
+                    } finally {
+                        carrera.unlock();
+                    }
+                    irCarrera(p);
+                }
+                break;
+            default:
+                break;
+        }
+        terminarCarrera(p);
+    }
+
+    public void terminarCarrera(Persona p) {
+        retirarBolsa(p);
+        if (((int) p.getGomonASignado().get("pareja")) == 0) {
+            entrada.lock();
+            try {
+                participantes.getAndDecrement();
+                if (participantes.get() == 0) {
+                    carreraTerminada = false;
+                    puedenEntrar = true;
+                    lugar.signalAll();
+                }
+            } finally {
+                entrada.unlock();
+            }
+        } else {
+            p.asignarParejaGomon(0);
+
+        }
+        System.out.println("Persona " + p.getNombre() + " Ha terminado la carrera y se va a ir");
+
+    }
+
+    public void retirarBolsa(Persona p) {
+        casillero.lock();
+
+        System.out.println("La persona retirara su bolsa del casillero " + p.getCasilleroAsignado());
+
+        casilleros[p.getCasilleroAsignado()] = -1;
+
+        casilleroVacio--;
+
+        casillero.unlock();
+    }
+
+    public void irCarrera(Persona p) {
+        condiciones.lock();
+        enCarrera.getAndIncrement();
+
+        int tienepareja = ((int) p.getGomonASignado().get("pareja"));
+        if (tienepareja == 0) {
+            System.out.println("Persona " + p.getNombre() + " esta esperando a que arranque la carrera.");
+        } else {
+            System.out.println(
+                    "Persona " + p.getNombre() + " y " + tienepareja + " esta esperando a que arranque la carrera.");
+            enCarrera.getAndIncrement();
+        }
+
+        System.out.println(" enCarrera.get() " + enCarrera.get() + " maximoCarrera.get() " + maximoCarrera.get());
+
+        if (enCarrera.get() == maximoCarrera.get()) {
+            puedenComenzar = true;
+            empiezaCarrera.signalAll();
+        }
+        while (!puedenComenzar) {
+            try {
+                empiezaCarrera.await();
+            } catch (InterruptedException ex) {
+                System.out.println(ex);
+            }
+        }
+        condiciones.unlock();
+
+        try {
+            Thread.sleep(4000);
+        } catch (InterruptedException ex) {
+        }
+        try {
+            entrada.lock();
+            if (tienepareja == 0) {
+                gomonesSolosOcupados.getAndDecrement();
+            } else {
+                gomonesDuosOcupados.getAndDecrement();
+            }
         } finally {
             entrada.unlock();
         }
+        carrera.lock();
 
-        subirseALosGomones(p, eleccion);
-
+        try {
+            System.out.println("Persona " + p.getNombre() + "terminó la carrera.");
+            System.out.println(" terminaron.get() " + terminaron.get());
+            if (terminaron.get() == 0) {
+                terminaron.getAndIncrement();
+                System.out.println("Persona " + p.getNombre() + " ganó la carrera.");
+                ganadores.add(p.getNombre());
+                if (tienepareja != 0) {
+                    System.out.println("Con su pareja " + tienepareja);
+                    ganadores.add(tienepareja);
+                }
+            } else {
+                terminaron.getAndIncrement();
+            }
+            condiciones.lock();
+            if (terminaron.get() == enCarrera.get()) {
+                puedenComenzar = false;
+                enCarrera.set(0);
+                terminaron.set(0);
+                carreraTerminada = true;
+                finCarrera.signalAll();
+            }
+            condiciones.unlock();
+        } finally {
+            carrera.unlock();
+        }
+        for (int i = 0; i < ganadores.size(); i++) {
+            if (((int) ganadores.get(i)) == p.getNombre()) {
+                entregarPremios(p, i);
+            }
+        }
     }
-    /*
-     * public void irAlRio(Persona p) {
-     * 
-     * switch (random.nextInt(2)) {
-     * // 0-> Bicis | 1 -> Tren
-     * case 0:
-     * try {
-     * bicicleta.acquire();
-     * Thread.sleep((int) (Math.random() * 800));
-     * bicicleta.release();
-     * } catch (InterruptedException ex) {
-     * System.out.println(ex);
-     * }
-     * break;
-     * 
-     * case 1:
-     * 
-     * try {
-     * tren.await(8, TimeUnit.SECONDS);
-     * } catch (TimeoutException ex) {
-     * tren.reset();
-     * } catch (InterruptedException | BrokenBarrierException ex) {
-     * }
-     * 
-     * try {
-     * Thread.sleep((int) (Math.random() * 500));
-     * } catch (InterruptedException ex) {
-     * System.out.println(ex);
-     * }
-     * 
-     * break;
-     * 
-     * default:
-     * break;
-     * }
-     * anotarseEnCarrera(p);
-     * }
-     * 
-     * public void guardarBolsa(Persona p) {
-     * 
-     * casillero.lock();
-     * try {
-     * casilleros[punteroCasillero] = p.getID();
-     * punteroCasillero++;
-     * } finally {
-     * casillero.unlock();
-     * }
-     * 
-     * }
-     * 
-     * public void retirarBolsa(Persona p) {
-     * casillero.lock();
-     * for (int i = 0; i < casilleros.length; i++) {
-     * if (casilleros[i] == p.getID()) {
-     * i = casilleros.length + 1;
-     * }
-     * }
-     * 
-     * punteroCasillero--;
-     * try {
-     * 
-     * } finally {
-     * casillero.unlock();
-     * }
-     * }
-     * 
-     * public void anotarseEnCarrera(Persona p) {
-     * entrada.lock();
-     * int eleccion = random.nextInt(2);
-     * 
-     * while (!hayLugar || (eleccion == 0 && usandoSolo == gomonSolo)
-     * || (eleccion == 1 && usandoDuo == gomonDuo)) {
-     * if (!hayLugar) {
-     * try {
-     * lugar.await();
-     * } catch (InterruptedException ex) {
-     * System.out.println();
-     * }
-     * }
-     * // Si se queda con su misma eleccion puede entrar en deadlock
-     * eleccion = random.nextInt(2);
-     * }
-     * 
-     * System.out.println("lockeara Horario");
-     * horario.lock();
-     * if (hora >= 17) {
-     * try {
-     * 
-     * } finally {
-     * horario.unlock();
-     * entrada.unlock();
-     * }
-     * salir(p);
-     * } else {
-     * try {
-     * 
-     * } finally {
-     * horario.unlock();
-     * }
-     * 
-     * participantes++;
-     * if (participantes == maximoCarrera) {
-     * hayLugar = false;
-     * }
-     * if (eleccion == 0) {
-     * usandoSolo++;
-     * } else {
-     * usandoDuo++;
-     * }
-     * 
-     * guardarBolsa(p);
-     * 
-     * try {
-     * 
-     * } finally {
-     * entrada.unlock();
-     * }
-     * 
-     * subirseALosGomones(p, eleccion);
-     * }
-     * }
-     * 
-     * public void subirseALosGomones(Persona p, int eleccion) {
-     * switch (eleccion) {
-     * // 0-> solo | 1 -> de a dos
-     * case 0:
-     * irCarrera(p);
-     * break;
-     * case 1:
-     * carrera.lock();
-     * if (!esperanPareja) {
-     * buscaPareja = p.getID();
-     * esperanPareja = true;
-     * entrada.lock();
-     * try {
-     * participantes--;
-     * usandoDuo--;
-     * if (participantes < maximoCarrera) {
-     * hayLugar = true;
-     * }
-     * lugar.signal();
-     * 
-     * } finally {
-     * entrada.unlock();
-     * }
-     * 
-     * try {
-     * while (esperanPareja) {
-     * compañero.await();
-     * }
-     * horario.lock();
-     * if (hora >= 18) {
-     * p.setPareja(0);
-     * }
-     * try {
-     * 
-     * } finally {
-     * horario.unlock();
-     * }
-     * while (!carreraTerminada) {
-     * finCarrera.await();
-     * }
-     * } catch (InterruptedException ex) {
-     * 
-     * } finally {
-     * carrera.unlock();
-     * }
-     * 
-     * } else {
-     * try {
-     * p.setPareja(buscaPareja);
-     * esperanPareja = false;
-     * compañero.signalAll();
-     * } finally {
-     * carrera.unlock();
-     * }
-     * irCarrera(p);
-     * }
-     * break;
-     * default:
-     * break;
-     * }
-     * terminarCarrera(p);
-     * }
-     * 
-     * public void terminarCarrera(Persona p) {
-     * retirarBolsa(p);
-     * if (p.getIDPareja() == -1) {
-     * entrada.lock();
-     * try {
-     * participantes--;
-     * if (participantes == 0) {
-     * carreraTerminada = false;
-     * hayLugar = true;
-     * lugar.signalAll();
-     * }
-     * } finally {
-     * entrada.unlock();
-     * }
-     * } else {
-     * p.setPareja(-1);
-     * }
-     * 
-     * salir(p);
-     * 
-     * }
-     * 
-     * public void salir(Persona p) {
-     * System.out.println("Persona " + p.getID() + " está saliendo del río.");
-     * }
-     * 
-     * public void irCarrera(Persona p) {
-     * condiciones.lock();
-     * enCarrera++;
-     * if (enCarrera == maximoCarrera) {
-     * puedenComenzar = true;
-     * empiezaCarrera.signalAll();
-     * }
-     * while (!puedenComenzar) {
-     * try {
-     * empiezaCarrera.await();
-     * } catch (InterruptedException ex) {
-     * System.out.println(ex);
-     * }
-     * }
-     * try {
-     * 
-     * } finally {
-     * condiciones.unlock();
-     * }
-     * 
-     * try {
-     * Thread.sleep((int) (Math.random() * 500));
-     * } catch (InterruptedException ex) {
-     * Logger.getLogger(CarreraGomones.class.getName()).log(Level.SEVERE, null, ex);
-     * }
-     * try {
-     * entrada.lock();
-     * if (p.getIDPareja() == -1) {
-     * usandoSolo--;
-     * } else {
-     * usandoDuo--;
-     * }
-     * } finally {
-     * entrada.unlock();
-     * }
-     * carrera.lock();
-     * try {
-     * terminaron++;
-     * condiciones.lock();
-     * if (terminaron == enCarrera) {
-     * puedenComenzar = false;
-     * enCarrera = 0;
-     * terminaron = 0;
-     * carreraTerminada = true;
-     * finCarrera.signalAll();
-     * }
-     * try {
-     * 
-     * } finally {
-     * condiciones.unlock();
-     * }
-     * } finally {
-     * carrera.unlock();
-     * }
-     * 
-     * }
-     */
+
+    private void entregarPremios(Persona p, int posicion) {
+        System.out.println(" Se van a entregar fichas a ganador carrera gomones: " + p.getNombre());
+        p.agregarFichas("CG", fichas);
+        ganadores.remove(posicion);
+    }
 }

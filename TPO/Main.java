@@ -1,7 +1,7 @@
 package TPO;
 
 public class Main {
-    private static Persona[] personas = new Persona[20];
+    private static Persona[] personas = new Persona[100];
     private static Reloj reloj;
     private static Empleado encargado;
     private static Empleado cocinero;

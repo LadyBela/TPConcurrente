@@ -6,7 +6,7 @@ public class Parque {
     public AutitosChocadores autitosChocadores;
     public Molinetes molinetes;
     public RealidadVirtual realidadVirtual;
-    public CarreraGomones carreraGomones = new CarreraGomones();
+    public CarreraGomones carreraGomones;
     public AreaPremios areaPremios;
     public Comedor comedor;
     public Teatro teatro;
@@ -16,7 +16,7 @@ public class Parque {
         this.autitosChocadores = new AutitosChocadores();
         this.molinetes = new Molinetes(cantMolinetes);
         this.realidadVirtual = new RealidadVirtual(10, 20, 10);
-        //this.carreraGomones = new CarreraGomones(15, 30, 10, 8);
+        this.carreraGomones = new CarreraGomones(15, 10, 8, 8, 12);
         this.areaPremios = new AreaPremios();
         this.comedor = new Comedor();
         this.teatro = new Teatro();
