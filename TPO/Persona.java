@@ -89,6 +89,12 @@ public class Persona extends Thread {
                             break;
                         case 3:
                             // parque.getCarreraGomones().participar(this);
+                            int eleccion = parque.getCarreraGomones().irAlRio(this);
+                            if (eleccion==0)    //Tarda mas en bici que en tren
+                                Thread.sleep(3000);
+                            else
+                                Thread.sleep(2000);
+                            parque.getCarreraGomones().llegarAlRio(this, eleccion);
                             break;
                         case 4:
                             parque.getComedor().sentarseEnMesa(this);
