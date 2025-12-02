@@ -127,7 +127,7 @@ public class Parque {
         try {
             boolean subio = false;
             for (int i = 0; i < cantActividades; i++) {
-                int actividad = rand.nextInt(5);
+                int actividad = rand.nextInt(6);
                 // Si cerro quiero que termine la actividad y no haga nada mas
                 if (!abierto) {
                     i = cantActividades;
@@ -168,6 +168,12 @@ public class Parque {
                             this.getComedor().pedirComida(p);
                             Thread.sleep(2000);
                             this.getComedor().irseDeMesa(p);
+                        }
+                        break;
+                    case 5:
+                        boolean entro = (boolean) this.getTeatro().intentarEntrar(p);
+                        if (entro) {
+                            this.getTeatro().verObra(p);
                         }
                         break;
                     case -1:

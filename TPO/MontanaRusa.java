@@ -42,7 +42,6 @@ public class MontanaRusa {
                 System.out.println("MR | Persona " + p.getNombre() + " entró en la fila de espera de la Montaña Rusa");
                 semInicio.acquire();
                 barreraInicio.await();
-                // esperando++;
                 esperando.getAndIncrement();
                 System.out.println(
                         "MR | Persona " + p.getNombre() + " esta esperando a subir (" + esperando.get() + "/5)");
