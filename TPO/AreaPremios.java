@@ -17,7 +17,7 @@ public class AreaPremios {
         int fichasCG = p.cantidadFichas("CG");
 
         int total = fichasMR + fichasAC + fichasRV + fichasCG;
-
+        // Si tiene fichas de algun tipo las intenta cambiar
         if (total != 0) {
             if (fichasMR > 0) {
                 // System.out.println("AP | - " + fichasMR + " fichas de Montaña Rusa");

@@ -81,6 +81,7 @@ public class CarreraGomones {
     }
 
     public int irAlRio(Persona p) {
+        // La persona elige en que va a ir al rio
         int eleccion = random.nextInt(2);
         switch (eleccion) {
             // 0 es bicis , 1 es tren
@@ -102,7 +103,6 @@ public class CarreraGomones {
                 } catch (InterruptedException | BrokenBarrierException ex) {
                 }
                 break;
-
             default:
                 break;
         }
@@ -131,7 +131,7 @@ public class CarreraGomones {
         int eleccion = random.nextInt(2);
         // 0 es solo , 1 es duo
 
-        // Si no hay lugar o si no quedan mas del gomon que se quiere, va a esperar
+        // Si no hay lugar o si no quedan mas del gomon que quiere, va a esperar
         while (!hayLugar
                 || (eleccion == 0 && gomonesSolosLibres.get() == 0)
                 || (eleccion == 1 && gomonesDuosLibres.get() == 0)) {
@@ -149,6 +149,7 @@ public class CarreraGomones {
         if (participantes.get() == maximoCarrera.get()) {
             hayLugar = false;
         }
+        // Uso dos variables para las cantidades ocupadas y libres
         if (eleccion == 0) {
             gomonesSolosLibres.getAndDecrement();
             gomonesSolosOcupados.getAndIncrement();
@@ -165,6 +166,7 @@ public class CarreraGomones {
     }
 
     public void guardarBolsa(Persona p) {
+        // Va a dejar sus cosas en uno de los casilleros vacios
         casillero.lock();
         int casilleroPersona = casilleroVacio;
         System.out.println(
@@ -183,6 +185,8 @@ public class CarreraGomones {
                 break;
             case 1:
                 carrera.lock();
+                // Si no espera pareja se va a subir al gomon y va a esperar a que alguien se
+                // suba y sea su pareja
                 if (!esperanPareja) {
                     buscanPareja = p.getNombre();
                     esperanPareja = true;
@@ -210,6 +214,7 @@ public class CarreraGomones {
                         carrera.unlock();
                     }
                 } else {
+                    // Si espera pareja, se le va a asignar a alguien que busca
                     try {
                         p.asignarParejaGomon(buscanPareja);
                         esperanPareja = false;
@@ -227,6 +232,7 @@ public class CarreraGomones {
     }
 
     public void terminarCarrera(Persona p) {
+        // Cuando termina la carrera va a retirar su bolsa antes de irse
         retirarBolsa(p);
         if (((int) p.getGomonASignado().get("pareja")) == 0) {
             entrada.lock();
@@ -249,14 +255,11 @@ public class CarreraGomones {
     }
 
     public void retirarBolsa(Persona p) {
+        // Va a sacar sus cosas de su casillero
         casillero.lock();
-
         System.out.println("CG | La persona retirara su bolsa del casillero " + p.getCasilleroAsignado());
-
         casilleros[p.getCasilleroAsignado()] = -1;
-
         casilleroVacio--;
-
         casillero.unlock();
     }
 
@@ -265,6 +268,7 @@ public class CarreraGomones {
         enCarrera.getAndIncrement();
 
         int tienepareja = ((int) p.getGomonASignado().get("pareja"));
+
         if (tienepareja == 0) {
             System.out.println("CG | Persona " + p.getNombre() + " esta esperando a que arranque la carrera.");
         } else {
@@ -273,7 +277,9 @@ public class CarreraGomones {
                             + " esta esperando a que arranque la carrera.");
             enCarrera.getAndIncrement();
         }
+
         if (enCarrera.get() == maximoCarrera.get()) {
+            // Si llegaron al maximo de personas listas para la carrera
             puedenComenzar = true;
             empiezaCarrera.signalAll();
         }
@@ -286,10 +292,14 @@ public class CarreraGomones {
         }
         condiciones.unlock();
 
+        // Simula la carrera de gomones
         try {
-            Thread.sleep(4000);
+            Thread.sleep(3000);
         } catch (InterruptedException ex) {
         }
+
+        carrera.lock();
+        // Termina la carrera y va dejando lugar
         try {
             entrada.lock();
             if (tienepareja == 0) {
@@ -300,11 +310,12 @@ public class CarreraGomones {
         } finally {
             entrada.unlock();
         }
-        carrera.lock();
 
         try {
             System.out.println("CG | Persona " + p.getNombre() + "terminó la carrera.");
             if (terminaron.get() == 0) {
+                // Si terminaron primeros se guarda la persona ganadora, si tenia pareja se
+                // guarda su pareja tambien
                 terminaron.getAndIncrement();
                 System.out.println("CG | Persona " + p.getNombre() + " ganó la carrera.");
                 ganadores.add(p.getNombre());
@@ -315,8 +326,10 @@ public class CarreraGomones {
             } else {
                 terminaron.getAndIncrement();
             }
+
             condiciones.lock();
             if (terminaron.get() == enCarrera.get()) {
+                // Se reinicia la carrera
                 puedenComenzar = false;
                 enCarrera.set(0);
                 terminaron.set(0);
@@ -335,6 +348,7 @@ public class CarreraGomones {
     }
 
     private void entregarPremios(Persona p, int posicion) {
+        // Se entregan los premios
         System.out.println("CG | Se van a entregar fichas a ganador carrera gomones: " + p.getNombre());
         p.agregarFichas("CG", fichas);
         ganadores.remove(posicion);

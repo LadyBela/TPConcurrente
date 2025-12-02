@@ -1,6 +1,7 @@
 package TPO;
 
 import java.util.Random;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -8,20 +9,20 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class Parque {
 
-    private AtomicInteger molinetes;
-
     public MontanaRusa montanaRusa;
     public AutitosChocadores autitosChocadores;
-    // public Molinetes molinetes;
     public RealidadVirtual realidadVirtual;
     public CarreraGomones carreraGomones;
     public AreaPremios areaPremios;
     public Comedor comedor;
     public Teatro teatro;
-    private int hora;
-    private boolean abierto;
+
+    private Semaphore molinetes;
+    // private AtomicInteger molinetes;
     private Lock horario;
     private Condition esperar;
+    private int hora;
+    private boolean abierto;
 
     public Parque(int cantMolinetes, int h) {
         this.montanaRusa = new MontanaRusa();
@@ -32,7 +33,8 @@ public class Parque {
         this.comedor = new Comedor();
         this.teatro = new Teatro();
 
-        this.molinetes = new AtomicInteger(cantMolinetes);
+        // this.molinetes = new AtomicInteger(cantMolinetes);
+        this.molinetes = new Semaphore(cantMolinetes, true);
         this.horario = new ReentrantLock();
         this.esperar = horario.newCondition();
 
@@ -63,11 +65,16 @@ public class Parque {
     }
 
     public void esperarMolinete() {
-        molinetes.getAndDecrement();
+        try {
+            molinetes.acquire();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     public void dejarMolinete() {
-        molinetes.getAndIncrement();
+        molinetes.release();
     }
 
     public RealidadVirtual getRealidadVirtual() {
@@ -128,7 +135,8 @@ public class Parque {
             boolean subio = false;
             for (int i = 0; i < cantActividades; i++) {
                 int actividad = rand.nextInt(6);
-                // Si cerro quiero que termine la actividad y no haga nada mas
+                // Si cerró quiero que terminne la actividades y no hagan nada nuevo, solo que
+                // terminen los que estaban
                 if (!abierto) {
                     i = cantActividades;
                     actividad = -1;
@@ -154,9 +162,9 @@ public class Parque {
                         }
                         break;
                     case 3:
-                        // parque.getCarreraGomones().participar(this);
                         int eleccion = this.getCarreraGomones().irAlRio(p);
-                        if (eleccion == 0) // Tarda mas en bici que en tren
+                        // Tarda mas en llegar en bici que en tren
+                        if (eleccion == 0)
                             Thread.sleep(2000);
                         else
                             Thread.sleep(1000);
